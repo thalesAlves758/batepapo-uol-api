@@ -15,6 +15,12 @@ export default {
         res.sendStatus(httpStatus.NOT_FOUND);
         return;
       }
+
+      await participantsCollection.updateOne(
+        { name: user },
+        { $set: { lastStatus: Date.now() } }
+      );
+
       res.send('ok');
     } catch (e) {
       res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
