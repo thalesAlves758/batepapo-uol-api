@@ -27,4 +27,19 @@ export default {
       res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
     }
   },
+  get: async (req, res) => {
+    try {
+      const connection = await database.connectDatabase(process.env.DB_NAME);
+
+      const messagesCollection = connection.collection('messages');
+
+      const messages = await messagesCollection.find().toArray();
+
+      res.send(messages);
+
+      await database.disconnectDatabase();
+    } catch (e) {
+      res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
+    }
+  },
 };
