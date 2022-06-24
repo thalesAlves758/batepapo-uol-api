@@ -34,6 +34,7 @@ export default {
     }
   },
   get: async (req, res) => {
+    const user = req.get('user');
     const limit = parseInt(req.query.limit);
 
     try {
@@ -44,7 +45,7 @@ export default {
       const countMessages = await messagesCollection.count();
 
       const messages = await messagesCollection
-        .find()
+        .find({ $or: [{ to: 'Todos' }, { from: user }, { to: user }] })
         .skip(isValidLimit(limit, countMessages) ? countMessages - limit : ZERO)
         .toArray();
 
