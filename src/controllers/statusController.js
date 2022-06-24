@@ -21,7 +21,7 @@ export default {
         { $set: { lastStatus: Date.now() } }
       );
 
-      res.send('ok');
+      res.sendStatus(httpStatus.OK);
     } catch (e) {
       res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
     }
