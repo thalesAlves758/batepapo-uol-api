@@ -40,4 +40,19 @@ export default {
       res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
     }
   },
+  get: async (req, res) => {
+    try {
+      const connection = await database.connectDatabase(process.env.DB_NAME);
+
+      const participantsCollection = connection.collection('participants');
+
+      const participants = await participantsCollection.find().toArray();
+
+      res.send(participants);
+
+      await database.disconnectDatabase();
+    } catch (e) {
+      res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
+    }
+  },
 };
