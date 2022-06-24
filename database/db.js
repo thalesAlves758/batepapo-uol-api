@@ -11,7 +11,7 @@ export default {
   disconnectDatabase: async () => {
     await mongoClient.close();
   },
-  setMongoClient: () => {
+  initMongoClient: () => {
     mongoClient = new MongoClient(process.env.MONGO_URI);
   },
 };
