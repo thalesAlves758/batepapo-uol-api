@@ -2,6 +2,12 @@ import dayjs from 'dayjs';
 import database from '../../database/db.js';
 import httpStatus from '../utils/httpStatus.js';
 
+const ZERO = 0;
+
+function isValidLimit(limit, countCollection) {
+  return limit && limit > ZERO && limit <= countCollection;
+}
+
 export default {
   post: async (req, res) => {
     const { to, text, type } = req.body;
@@ -28,12 +34,19 @@ export default {
     }
   },
   get: async (req, res) => {
+    const limit = parseInt(req.query.limit);
+
     try {
       const connection = await database.connectDatabase(process.env.DB_NAME);
 
       const messagesCollection = connection.collection('messages');
 
-      const messages = await messagesCollection.find().toArray();
+      const countMessages = await messagesCollection.count();
+
+      const messages = await messagesCollection
+        .find()
+        .skip(isValidLimit(limit, countMessages) ? countMessages - limit : ZERO)
+        .toArray();
 
       res.send(messages);
 
