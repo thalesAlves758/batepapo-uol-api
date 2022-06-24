@@ -1,14 +1,17 @@
 import { MongoClient } from 'mongodb';
 
-const mongoClient = new MongoClient(process.env.MONGO_URI);
+let mongoClient;
 
 export default {
-  connectDatabase: async (dbName) => {
+  connectDatabase: async () => {
     const connection = await mongoClient.connect();
 
-    return connection.db(dbName);
+    return connection.db(process.env.DB_NAME);
   },
   desconnectDatabase: async () => {
     await mongoClient.close();
+  },
+  setMongoClient: () => {
+    mongoClient = new MongoClient(process.env.MONGO_URI);
   },
 };
