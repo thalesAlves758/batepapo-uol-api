@@ -8,7 +8,7 @@ export default {
 
     return connection.db(process.env.DB_NAME);
   },
-  desconnectDatabase: async () => {
+  disconnectDatabase: async () => {
     await mongoClient.close();
   },
   setMongoClient: () => {
