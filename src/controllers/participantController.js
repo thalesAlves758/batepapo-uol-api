@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 import database from '../../database/db.js';
 import httpStatus from '../utils/httpStatus.js';
 
@@ -16,9 +18,19 @@ export default {
         return;
       }
 
-      await participantsCollection.insertOne({
+      const newParticipant = await participantsCollection.insertOne({
         name,
         lastStatus: Date.now(),
+      });
+
+      const messagesCollection = connection.collection('messages');
+
+      await messagesCollection.insertOne({
+        from: name,
+        to: 'Todos',
+        text: 'entra na sala...',
+        type: 'status',
+        time: dayjs(newParticipant.lastStatus).format('HH:mm:ss'),
       });
 
       res.sendStatus(httpStatus.CREATED);
