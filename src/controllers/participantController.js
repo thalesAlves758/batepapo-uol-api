@@ -4,9 +4,11 @@ import database from '../../database/db.js';
 import httpStatus from '../utils/httpStatus.js';
 import schema from '../schemas/participantSchema.js';
 
+import sanitizeStrings from '../utils/sanitizeStrings.js';
+
 export default {
   post: async (req, res) => {
-    const { name } = req.body;
+    const [name] = sanitizeStrings([req.body.name]);
 
     try {
       const connection = await database.connectDatabase(process.env.DB_NAME);
