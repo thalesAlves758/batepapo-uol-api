@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { ObjectId } from 'mongodb';
 
 import database from '../../database/db.js';
 import httpStatus from '../utils/httpStatus.js';
@@ -21,7 +22,7 @@ export default {
     ]);
 
     try {
-      const connection = await database.connectDatabase(process.env.DB_NAME);
+      const connection = await database.connectDatabase();
 
       const participantsCollection = connection.collection('participants');
       const messagesCollection = connection.collection('messages');
@@ -56,7 +57,6 @@ export default {
 
       await database.disconnectDatabase();
     } catch (e) {
-      console.log(e);
       res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
     }
   },
@@ -65,7 +65,7 @@ export default {
     const limit = parseInt(req.query.limit);
 
     try {
-      const connection = await database.connectDatabase(process.env.DB_NAME);
+      const connection = await database.connectDatabase();
 
       const messagesCollection = connection.collection('messages');
 
@@ -84,6 +84,45 @@ export default {
         .toArray();
 
       res.send(messages);
+
+      await database.disconnectDatabase();
+    } catch (e) {
+      res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
+    }
+  },
+  delete: async (req, res) => {
+    const user = req.get('user');
+    let { messageId } = req.params;
+
+    try {
+      messageId = ObjectId(messageId);
+    } catch (e) {
+      res.sendStatus(httpStatus.BAD_REQUEST);
+      return;
+    }
+
+    try {
+      const connection = await database.connectDatabase();
+
+      const messagesCollection = connection.collection('messages');
+
+      const message = await messagesCollection.findOne({
+        _id: messageId,
+      });
+
+      if (!message) {
+        res.sendStatus(httpStatus.NOT_FOUND);
+        return;
+      }
+
+      if (message.from !== user) {
+        res.sendStatus(httpStatus.UNAUTHORIZED);
+        return;
+      }
+
+      await messagesCollection.deleteOne({ _id: messageId });
+
+      res.sendStatus(httpStatus.NO_CONTENT);
 
       await database.disconnectDatabase();
     } catch (e) {
