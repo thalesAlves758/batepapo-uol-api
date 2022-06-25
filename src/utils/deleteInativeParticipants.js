@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import database from '../../database/db.js';
 
 const ZERO = 0;
@@ -13,6 +14,7 @@ export default {
         const connection = await database.connectDatabase();
 
         const participantsCollection = connection.collection('participants');
+        const messagesCollection = connection.collection('messages');
 
         const inativeParticipants = await participantsCollection
           .find({ lastStatus: { $lt: Date.now() - TEN_SECONDS } })
@@ -24,6 +26,16 @@ export default {
               _id,
             })),
           });
+
+          await messagesCollection.insertMany(
+            inativeParticipants.map((participant) => ({
+              from: participant.name,
+              to: 'Todos',
+              text: 'sai da sala...',
+              type: 'status',
+              time: dayjs().format('HH:mm:ss'),
+            }))
+          );
         }
 
         await database.disconnectDatabase();
