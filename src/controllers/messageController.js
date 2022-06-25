@@ -42,7 +42,7 @@ export default {
 
       const messagesCollection = connection.collection('messages');
 
-      const countMessages = await messagesCollection.count();
+      const countMessages = await messagesCollection.countDocuments();
 
       const messages = await messagesCollection
         .find({ $or: [{ to: 'Todos' }, { from: user }, { to: user }] })
