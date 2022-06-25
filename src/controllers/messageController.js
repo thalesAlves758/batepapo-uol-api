@@ -67,7 +67,14 @@ export default {
       const countMessages = await messagesCollection.countDocuments();
 
       const messages = await messagesCollection
-        .find({ $or: [{ to: 'Todos' }, { from: user }, { to: user }] })
+        .find({
+          $or: [
+            { to: 'Todos' },
+            { type: 'message' },
+            { from: user },
+            { to: user },
+          ],
+        })
         .skip(isValidLimit(limit, countMessages) ? countMessages - limit : ZERO)
         .toArray();
 
