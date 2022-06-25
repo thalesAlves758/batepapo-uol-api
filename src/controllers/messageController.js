@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import database from '../../database/db.js';
 import httpStatus from '../utils/httpStatus.js';
 import schema from '../schemas/messageSchema.js';
+import sanitizeStrings from '../utils/sanitizeStrings.js';
 
 const ZERO = 0;
 
@@ -12,8 +13,12 @@ function isValidLimit(limit, countCollection) {
 
 export default {
   post: async (req, res) => {
-    const { to, text, type } = req.body;
-    const from = req.get('user');
+    const [to, text, type, from] = sanitizeStrings([
+      req.body.to,
+      req.body.text,
+      req.body.type,
+      req.get('user'),
+    ]);
 
     try {
       const connection = await database.connectDatabase(process.env.DB_NAME);
