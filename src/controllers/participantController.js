@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 
 import database from '../../database/db.js';
 import httpStatus from '../utils/httpStatus.js';
+import schema from '../schemas/participantSchema.js';
 
 export default {
   post: async (req, res) => {
@@ -15,6 +16,14 @@ export default {
 
       if (participant) {
         res.sendStatus(httpStatus.CONFLICT);
+        return;
+      }
+
+      const participantSchema = schema.getSchema();
+      const validation = participantSchema.validate({ name });
+
+      if (validation.error) {
+        res.sendStatus(httpStatus.UNPROCESSABLE_ENTITY);
         return;
       }
 
