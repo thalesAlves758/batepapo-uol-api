@@ -14,7 +14,7 @@ function isValidLimit(limit, countCollection) {
 
 export default {
   post: async (req, res) => {
-    const [to, text, type, from] = sanitizeStrings([
+    const [to, text, type, user] = sanitizeStrings([
       req.body.to,
       req.body.text,
       req.body.type,
@@ -36,7 +36,7 @@ export default {
       const messageSchema = schema.getSchema(participantsName);
 
       const validation = messageSchema.validate(
-        { to, text, type, from },
+        { to, text, type, from: user },
         { abortEarly: false }
       );
 
@@ -49,7 +49,7 @@ export default {
         to,
         text,
         type,
-        from,
+        from: user,
         time: dayjs().format('HH:mm:ss'),
       });
 
@@ -121,6 +121,78 @@ export default {
       }
 
       await messagesCollection.deleteOne({ _id: messageId });
+
+      res.sendStatus(httpStatus.NO_CONTENT);
+
+      await database.disconnectDatabase();
+    } catch (e) {
+      res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
+    }
+  },
+  put: async (req, res) => {
+    const [to, text, type, user] = sanitizeStrings([
+      req.body.to,
+      req.body.text,
+      req.body.type,
+      req.get('user'),
+    ]);
+    let { messageId } = req.params;
+
+    try {
+      messageId = ObjectId(messageId);
+    } catch (e) {
+      res.sendStatus(httpStatus.BAD_REQUEST);
+      return;
+    }
+
+    try {
+      const connection = await database.connectDatabase();
+
+      const messagesCollection = connection.collection('messages');
+      const participantsCollection = connection.collection('participants');
+
+      const participants = await participantsCollection.find().toArray();
+
+      const participantsName = participants.map(
+        (participant) => participant.name
+      );
+
+      const messageSchema = schema.getSchema(participantsName);
+
+      const validation = messageSchema.validate(
+        { to, text, type, from: user },
+        { abortEarly: false }
+      );
+
+      if (participantsName.length === ZERO || validation.error) {
+        res.sendStatus(httpStatus.UNPROCESSABLE_ENTITY);
+        return;
+      }
+
+      const message = await messagesCollection.findOne({ _id: messageId });
+
+      if (!message) {
+        res.sendStatus(httpStatus.NOT_FOUND);
+        return;
+      }
+
+      if (message.from !== user) {
+        res.sendStatus(httpStatus.UNAUTHORIZED);
+        return;
+      }
+
+      await messagesCollection.updateOne(
+        { _id: messageId },
+        {
+          $set: {
+            to,
+            text,
+            type,
+            from: user,
+            time: dayjs().format('HH:mm:ss'),
+          },
+        }
+      );
 
       res.sendStatus(httpStatus.NO_CONTENT);
 
