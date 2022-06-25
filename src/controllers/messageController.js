@@ -1,6 +1,8 @@
 import dayjs from 'dayjs';
+
 import database from '../../database/db.js';
 import httpStatus from '../utils/httpStatus.js';
+import schema from '../schemas/messageSchema.js';
 
 const ZERO = 0;
 
@@ -16,7 +18,26 @@ export default {
     try {
       const connection = await database.connectDatabase(process.env.DB_NAME);
 
+      const participantsCollection = connection.collection('participants');
       const messagesCollection = connection.collection('messages');
+
+      const participants = await participantsCollection.find().toArray();
+
+      const participantsName = participants.map(
+        (participant) => participant.name
+      );
+
+      const messageSchema = schema.getSchema(participantsName);
+
+      const validation = messageSchema.validate(
+        { to, text, type, from },
+        { abortEarly: false }
+      );
+
+      if (participantsName.length === ZERO || validation.error) {
+        res.sendStatus(httpStatus.UNPROCESSABLE_ENTITY);
+        return;
+      }
 
       await messagesCollection.insertOne({
         to,
@@ -30,6 +51,7 @@ export default {
 
       await database.disconnectDatabase();
     } catch (e) {
+      console.log(e);
       res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
     }
   },
