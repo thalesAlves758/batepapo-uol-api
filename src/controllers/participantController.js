@@ -11,7 +11,7 @@ export default {
     const [name] = sanitizeStrings([req.body.name]);
 
     try {
-      const connection = await database.connectDatabase(process.env.DB_NAME);
+      const connection = await database.connectDatabase();
 
       const participantsCollection = connection.collection('participants');
       const participant = await participantsCollection.findOne({ name });
@@ -53,7 +53,7 @@ export default {
   },
   get: async (req, res) => {
     try {
-      const connection = await database.connectDatabase(process.env.DB_NAME);
+      const connection = await database.connectDatabase();
 
       const participantsCollection = connection.collection('participants');
 
